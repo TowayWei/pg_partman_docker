@@ -1,13 +1,13 @@
 # Stage 1: Build pg_partman
 FROM postgres:17.0-bookworm AS builder
 
-# Update and install build dependencies
-RUN apt-get update && apt-get install -y \
-    postgresql-server-dev-17 \
-    build-essential \
-    git \
-    curl \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Update and install build dependencies individually to troubleshoot
+RUN apt-get update && \
+    apt-get install -y curl && \
+    apt-get install -y git && \
+    apt-get install -y build-essential && \
+    apt-get install -y postgresql-server-dev-17 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install pgxnclient for installing extensions via PGXN
 RUN curl -L https://github.com/pgxn/pgxnclient/archive/refs/tags/v1.3.1.tar.gz | tar zx && \
@@ -26,7 +26,7 @@ COPY --from=builder /usr/share/postgresql/extension/pg_partman* /usr/share/postg
 COPY --from=builder /usr/lib/postgresql/17/lib/pg_partman* /usr/lib/postgresql/17/lib/
 
 # Set environment variable to ensure Postgres loads pg_partman extension
-ENV POSTGRESQL_PARTMAN_ENABLED true
+ENV POSTGRESQL_PARTMAN_ENABLED=true
 
 # Display pg_partman version to verify successful installation
 RUN psql -c "CREATE EXTENSION IF NOT EXISTS pg_partman"
